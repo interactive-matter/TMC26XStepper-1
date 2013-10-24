@@ -108,7 +108,7 @@
  * dir_pin - the pin where the direction pin is connected
  * step_pin - the pin where the step pin is connected
  */
-TMC26XGenerator::TMC26XGenerator(int number_of_steps, unsigned int current, unsigned int resistor)
+TMC26XGenerator::TMC26XGenerator(unsigned int current, unsigned int resistor)
 {
 	//we are not started yet
 	started=false;

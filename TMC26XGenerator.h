@@ -121,7 +121,7 @@ class TMC26XGenerator {
      * You can select a different stepping with setMicrosteps() to aa different value.
      * \sa start(), setMicrosteps()
      */
-	TMC26XGenerator(int number_of_steps, unsigned int current, unsigned int resistor=150);
+	TMC26XGenerator(unsigned int current, unsigned int resistor=150);
 	
     /*!
      * \brief configures and starts the TMC26X stepper driver. Before you called this function the stepper driver is in nonfunctional mode.
@@ -473,7 +473,7 @@ class TMC26XGenerator {
      * \param read_value selects which value to read out (0..3). You can use the defines TMC26X_READOUT_POSITION, TMC_262_READOUT_STALLGUARD, or TMC_262_READOUT_CURRENT
      * \sa TMC26X_READOUT_POSITION, TMC_262_READOUT_STALLGUARD, TMC_262_READOUT_CURRENT
      */
-	void readStatus(char read_value);
+	//void readStatus(char read_value);
     
     /*!
      * \brief Returns the current sense resistor value in milliohm.
