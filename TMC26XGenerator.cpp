@@ -813,3 +813,27 @@ if (this->started) {
 	}
 #endif
 }
+
+unsigned long TMC26XGenerator::getDriverControlRegisterValue() {
+	return this->driver_control_register_value;
+}
+
+unsigned long TMC26XGenerator::getChopperConfigRegisterValue() {
+	return this->chopper_config_register;
+}
+
+unsigned long TMC26XGenerator::getCoolStepConfigRegisterValue() {
+	return this->cool_step_register_value;
+}
+
+unsigned long TMC26XGenerator::getStallGuard2RegisterValue() {
+	return this->stall_guard2_current_register_value;
+}
+
+unsigned long TMC26XGenerator::getDriverConfigurationRegisterValue(){
+	return this->driver_configuration_register_value;
+}
+
+void setDriverStatusResult(unsigned long driver_status_result) {
+	this->driver_status_result = driver_status_result;
+}

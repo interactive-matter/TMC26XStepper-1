@@ -486,11 +486,14 @@ class TMC26XGenerator {
      * The result is printed via Serial
      */
 	void debugLastStatus(void);
-	/*!
-     * \brief library version
-     * \return the version number as int.
-     */
-    int version(void);
+
+    unsigned long getDriverControlRegisterValue();
+    unsigned long getChopperConfigRegisterValue();
+    unsigned long getCoolStepConfigRegisterValue();
+    unsigned long getStallGuard2RegisterValue();
+    unsigned long getDriverConfigurationRegisterValue();
+
+    void setDriverStatusResult(unsigned long driver_status_result);
 
   private:    
     unsigned int resistor; //current sense resitor value in milliohm
