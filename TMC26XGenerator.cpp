@@ -1,5 +1,5 @@
 /*
- TMC26XStepper.cpp - - TMC26X Stepper library for Wiring/Arduino
+ TMC26XGenerator.cpp - - TMC26X Stepper library for Wiring/Arduino
  
  based on the stepper library by Tom Igoe, et. al.
  
@@ -31,7 +31,7 @@
 	#include <WProgram.h>
 #endif
 #include <SPI.h>
-#include "TMC26XStepper.h"
+#include "TMC26XGenerator.h"
 
 //some default values used in initialization
 #define DEFAULT_MICROSTEPPING_VALUE 32
@@ -108,7 +108,7 @@
  * dir_pin - the pin where the direction pin is connected
  * step_pin - the pin where the step pin is connected
  */
-TMC26XStepper::TMC26XStepper(int number_of_steps, int cs_pin, int dir_pin, int step_pin, unsigned int current, unsigned int resistor)
+TMC26XGenerator::TMC26XGenerator(int number_of_steps, int cs_pin, int dir_pin, int step_pin, unsigned int current, unsigned int resistor)
 {
 	//we are not started yet
 	started=false;
@@ -154,7 +154,7 @@ TMC26XStepper::TMC26XStepper(int number_of_steps, int cs_pin, int dir_pin, int s
  * start & configure the stepper driver
  * just must be called.
  */
-void TMC26XStepper::start() {
+void TMC26XGenerator::start() {
 
 #ifdef DEBUG	
 	Serial.println("TMC26X stepper library");
@@ -196,7 +196,7 @@ void TMC26XStepper::start() {
 /*
  Mark the driver as unstarted to be able to start it again
  */
-void TMC26XStepper::un_start() {
+void TMC26XGenerator::un_start() {
     started=false;
 }
 
@@ -205,7 +205,7 @@ void TMC26XStepper::un_start() {
   Sets the speed in revs per minute
 
 */
-void TMC26XStepper::setSpeed(unsigned int whatSpeed)
+void TMC26XGenerator::setSpeed(unsigned int whatSpeed)
 {
   this->speed = whatSpeed;
   this->step_delay = (60UL * 1000UL * 1000UL) / ((unsigned long)this->number_of_steps * (unsigned long)whatSpeed * (unsigned long)this->microsteps);
@@ -218,7 +218,7 @@ void TMC26XStepper::setSpeed(unsigned int whatSpeed)
 
 }
 
-unsigned int TMC26XStepper::getSpeed(void) {
+unsigned int TMC26XGenerator::getSpeed(void) {
     return this->speed;
 }
 
@@ -226,7 +226,7 @@ unsigned int TMC26XStepper::getSpeed(void) {
   Moves the motor steps_to_move steps.  If the number is negative, 
    the motor moves in the reverse direction.
  */
-char TMC26XStepper::step(int steps_to_move)
+char TMC26XGenerator::step(int steps_to_move)
 {  
 	if (this->steps_left==0) {
   		this->steps_left = abs(steps_to_move);  // how many steps to take
@@ -243,7 +243,7 @@ char TMC26XStepper::step(int steps_to_move)
     }
 }
 
-char TMC26XStepper::move(void) {
+char TMC26XGenerator::move(void) {
   // decrement the number of steps, moving one step each time:
   if(this->steps_left>0) {
       unsigned long time = micros();  
@@ -271,15 +271,15 @@ char TMC26XStepper::move(void) {
     return 0;
 }
 
-char TMC26XStepper::isMoving(void) {
+char TMC26XGenerator::isMoving(void) {
 	return (this->steps_left>0);
 }
 
-unsigned int TMC26XStepper::getStepsLeft(void) {
+unsigned int TMC26XGenerator::getStepsLeft(void) {
 	return this->steps_left;
 }
 
-char TMC26XStepper::stop(void) {
+char TMC26XGenerator::stop(void) {
 	//note to self if the motor is currently moving
 	char state = isMoving();
 	//stop the motor
@@ -289,7 +289,7 @@ char TMC26XStepper::stop(void) {
 	return state;
 }
 
-void TMC26XStepper::setCurrent(unsigned int current) {
+void TMC26XGenerator::setCurrent(unsigned int current) {
     unsigned char current_scaling = 0;
 	//calculate the current scaling from the max current setting (in mA)
 	double mASetting = (double)current;
@@ -333,7 +333,7 @@ void TMC26XStepper::setCurrent(unsigned int current) {
 	}
 }
 
-unsigned int TMC26XStepper::getCurrent(void) {
+unsigned int TMC26XGenerator::getCurrent(void) {
     //we calculate the current according to the datasheet to be on the safe side
     //this is not the fastest but the most accurate and illustrative way
     double result = (double)(stall_guard2_current_register_value & CURRENT_SCALING_PATTERN);
@@ -343,7 +343,7 @@ unsigned int TMC26XStepper::getCurrent(void) {
     return (unsigned int)result;
 }
 
-void TMC26XStepper::setStallGuardThreshold(char stall_guard_threshold, char stall_guard_filter_enabled) {
+void TMC26XGenerator::setStallGuardThreshold(char stall_guard_threshold, char stall_guard_filter_enabled) {
 	if (stall_guard_threshold<-64) {
 		stall_guard_threshold = -64;
 	//We just have 5 bits	
@@ -365,7 +365,7 @@ void TMC26XStepper::setStallGuardThreshold(char stall_guard_threshold, char stal
 	}
 }
 
-char TMC26XStepper::getStallGuardThreshold(void) {
+char TMC26XGenerator::getStallGuardThreshold(void) {
     unsigned long stall_guard_threshold = stall_guard2_current_register_value & STALL_GUARD_VALUE_PATTERN;
     //shift it down to bit 0
     stall_guard_threshold >>=8;
@@ -378,7 +378,7 @@ char TMC26XStepper::getStallGuardThreshold(void) {
     return result;
 }
 
-char TMC26XStepper::getStallGuardFilter(void) {
+char TMC26XGenerator::getStallGuardFilter(void) {
     if (stall_guard2_current_register_value & STALL_GUARD_FILTER_ENABLED) {
         return -1;
     } else {
@@ -391,7 +391,7 @@ char TMC26XStepper::getStallGuardFilter(void) {
  * any value in between will be mapped to the next smaller value
  * 0 and 1 set the motor in full step mode
  */
-void TMC26XStepper::setMicrosteps(int number_of_steps) {
+void TMC26XGenerator::setMicrosteps(int number_of_steps) {
 	long setting_pattern;
 	//poor mans log
 	if (number_of_steps>=256) {
@@ -443,7 +443,7 @@ void TMC26XStepper::setMicrosteps(int number_of_steps) {
 /*
  * returns the effective number of microsteps at the moment
  */
-int TMC26XStepper::getMicrosteps(void) {
+int TMC26XGenerator::getMicrosteps(void) {
 	return microsteps;
 }
 
@@ -470,7 +470,7 @@ int TMC26XStepper::getMicrosteps(void) {
  *		1: enable comparator termination of fast decay cycle
  *		0: end by time only
  */
-void TMC26XStepper::setConstantOffTimeChopper(char constant_off_time, char blank_time, char fast_decay_time_setting, char sine_wave_offset, unsigned char use_current_comparator) {
+void TMC26XGenerator::setConstantOffTimeChopper(char constant_off_time, char blank_time, char fast_decay_time_setting, char sine_wave_offset, unsigned char use_current_comparator) {
 	//perform some sanity checks
 	if (constant_off_time<2) {
 		constant_off_time=2;
@@ -549,7 +549,7 @@ void TMC26XStepper::setConstantOffTimeChopper(char constant_off_time, char blank
  *		0: fast decrement 3: very slow decrement
  */
 
-void TMC26XStepper::setSpreadCycleChopper(char constant_off_time, char blank_time, char hysteresis_start, char hysteresis_end, char hysteresis_decrement) {
+void TMC26XGenerator::setSpreadCycleChopper(char constant_off_time, char blank_time, char hysteresis_start, char hysteresis_end, char hysteresis_decrement) {
 	//perform some sanity checks
 	if (constant_off_time<2) {
 		constant_off_time=2;
@@ -621,7 +621,7 @@ void TMC26XStepper::setSpreadCycleChopper(char constant_off_time, char blank_tim
  * It modulates the slow decay time setting when switched on by the RNDTF bit. The RNDTF feature further spreads the chopper spectrum, 
  * reducing electromagnetic emission on single frequencies.
  */
-void TMC26XStepper::setRandomOffTime(char value) {
+void TMC26XGenerator::setRandomOffTime(char value) {
 	if (value) {
 		chopper_config_register |= RANDOM_TOFF_TIME;
 	} else {
@@ -633,7 +633,7 @@ void TMC26XStepper::setRandomOffTime(char value) {
 	}	
 }	
 
-void TMC26XStepper::setCoolStepConfiguration(unsigned int lower_SG_threshold, unsigned int SG_hysteresis, unsigned char current_decrement_step_size,
+void TMC26XGenerator::setCoolStepConfiguration(unsigned int lower_SG_threshold, unsigned int SG_hysteresis, unsigned char current_decrement_step_size,
                               unsigned char current_increment_step_size, unsigned char lower_current_limit) {
     //sanitize the input values
     if (lower_SG_threshold>480) {
@@ -673,7 +673,7 @@ void TMC26XStepper::setCoolStepConfiguration(unsigned int lower_SG_threshold, un
     }
 }
 
-void TMC26XStepper::setCoolStepEnabled(boolean enabled) {
+void TMC26XGenerator::setCoolStepEnabled(boolean enabled) {
     //simply delete the lower limit to disable the cool step
     cool_step_register_value &= ~SE_MIN_PATTERN;
     //and set it to the proper value if cool step is to be enabled
@@ -688,32 +688,32 @@ void TMC26XStepper::setCoolStepEnabled(boolean enabled) {
     }
 }
 
-boolean TMC26XStepper::isCoolStepEnabled(void) {
+boolean TMC26XGenerator::isCoolStepEnabled(void) {
     return this->cool_step_enabled;
 }
 
-unsigned int TMC26XStepper::getCoolStepLowerSgThreshold() {
+unsigned int TMC26XGenerator::getCoolStepLowerSgThreshold() {
     //we return our internally stored value - in order to provide the correct setting even if cool step is not enabled
     return this->cool_step_lower_threshold<<5;
 }
 
-unsigned int TMC26XStepper::getCoolStepUpperSgThreshold() {
+unsigned int TMC26XGenerator::getCoolStepUpperSgThreshold() {
     return (unsigned char)((cool_step_register_value & SE_MAX_PATTERN)>>8)<<5;
 }
 
-unsigned char TMC26XStepper::getCoolStepCurrentIncrementSize() {
+unsigned char TMC26XGenerator::getCoolStepCurrentIncrementSize() {
     return (unsigned char)((cool_step_register_value & CURRENT_DOWN_STEP_SPEED_PATTERN)>>13);
 }
 
-unsigned char TMC26XStepper::getCoolStepNumberOfSGReadings() {
+unsigned char TMC26XGenerator::getCoolStepNumberOfSGReadings() {
     return (unsigned char)((cool_step_register_value & SE_CURRENT_STEP_WIDTH_PATTERN)>>5);
 }
 
-unsigned char TMC26XStepper::getCoolStepLowerCurrentLimit() {
+unsigned char TMC26XGenerator::getCoolStepLowerCurrentLimit() {
     return (unsigned char)((cool_step_register_value & MINIMUM_CURRENT_FOURTH)>>15);
 }
 
-void TMC26XStepper::setEnabled(boolean enabled) {
+void TMC26XGenerator::setEnabled(boolean enabled) {
     //delete the t_off in the chopper config to get sure
     chopper_config_register &= ~(T_OFF_PATTERN);
     if (enabled) {
@@ -726,7 +726,7 @@ void TMC26XStepper::setEnabled(boolean enabled) {
 	}	
 }
 
-boolean TMC26XStepper::isEnabled() {
+boolean TMC26XGenerator::isEnabled() {
     if (chopper_config_register & T_OFF_PATTERN) {
         return true;
     } else {
@@ -739,7 +739,7 @@ boolean TMC26XStepper::isEnabled() {
  * be read by the various status routines.
  *
  */
-void TMC26XStepper::readStatus(char read_value) {
+void TMC26XGenerator::readStatus(char read_value) {
     unsigned long old_driver_configuration_register_value = driver_configuration_register_value;
 	//reset the readout configuration
 	driver_configuration_register_value &= ~(READ_SELECTION_PATTERN);
@@ -759,7 +759,7 @@ void TMC26XStepper::readStatus(char read_value) {
 	send262(driver_configuration_register_value);
 }
 
-int TMC26XStepper::getMotorPosition(void) {
+int TMC26XGenerator::getMotorPosition(void) {
 	//we read it out even if we are not started yet - perhaps it is useful information for somebody
 	readStatus(TMC26X_READOUT_POSITION);
     return getReadoutValue();
@@ -767,7 +767,7 @@ int TMC26XStepper::getMotorPosition(void) {
 
 //reads the stall guard setting from last status
 //returns -1 if stallguard information is not present
-int TMC26XStepper::getCurrentStallGuardReading(void) {
+int TMC26XGenerator::getCurrentStallGuardReading(void) {
 	//if we don't yet started there cannot be a stall guard value
 	if (!started) {
 		return -1;
@@ -778,7 +778,7 @@ int TMC26XStepper::getCurrentStallGuardReading(void) {
 	return getReadoutValue();
 }
 
-unsigned char TMC26XStepper::getCurrentCSReading(void) {
+unsigned char TMC26XGenerator::getCurrentCSReading(void) {
 	//if we don't yet started there cannot be a stall guard value
 	if (!started) {
 		return 0;
@@ -789,7 +789,7 @@ unsigned char TMC26XStepper::getCurrentCSReading(void) {
 	return (getReadoutValue() & 0x1f);
 }
 
-unsigned int TMC26XStepper::getCurrentCurrent(void) {
+unsigned int TMC26XGenerator::getCurrentCurrent(void) {
     double result = (double)getCurrentCSReading();
     double resistor_value = (double)this->resistor;
     double voltage = (driver_configuration_register_value & VSENSE)? 0.165:0.31;
@@ -800,7 +800,7 @@ unsigned int TMC26XStepper::getCurrentCurrent(void) {
 /*
  return true if the stallguard threshold has been reached
 */
-boolean TMC26XStepper::isStallGuardOverThreshold(void) {
+boolean TMC26XGenerator::isStallGuardOverThreshold(void) {
 	if (!this->started) {
 		return false;
 	}
@@ -813,7 +813,7 @@ boolean TMC26XStepper::isStallGuardOverThreshold(void) {
  OVER_TEMPERATURE_SHUTDOWN if the temperature is so hot that the driver is shut down
  Any of those levels are not too good.
 */
-char TMC26XStepper::getOverTemperature(void) {
+char TMC26XGenerator::getOverTemperature(void) {
 	if (!this->started) {
 		return 0;
 	}
@@ -827,7 +827,7 @@ char TMC26XStepper::getOverTemperature(void) {
 }
 
 //is motor channel A shorted to ground
-boolean TMC26XStepper::isShortToGroundA(void) {
+boolean TMC26XGenerator::isShortToGroundA(void) {
 	if (!this->started) {
 		return false;
 	}
@@ -835,7 +835,7 @@ boolean TMC26XStepper::isShortToGroundA(void) {
 }
 
 //is motor channel B shorted to ground
-boolean TMC26XStepper::isShortToGroundB(void) {
+boolean TMC26XGenerator::isShortToGroundB(void) {
 	if (!this->started) {
 		return false;
 	}
@@ -843,7 +843,7 @@ boolean TMC26XStepper::isShortToGroundB(void) {
 }
 
 //is motor channel A connected
-boolean TMC26XStepper::isOpenLoadA(void) {
+boolean TMC26XGenerator::isOpenLoadA(void) {
 	if (!this->started) {
 		return false;
 	}
@@ -851,7 +851,7 @@ boolean TMC26XStepper::isOpenLoadA(void) {
 }
 
 //is motor channel B connected
-boolean TMC26XStepper::isOpenLoadB(void) {
+boolean TMC26XGenerator::isOpenLoadB(void) {
 	if (!this->started) {
 		return false;
 	}
@@ -859,7 +859,7 @@ boolean TMC26XStepper::isOpenLoadB(void) {
 }
 
 //is chopper inactive since 2^20 clock cycles - defaults to ~0,08s
-boolean TMC26XStepper::isStandStill(void) {
+boolean TMC26XGenerator::isStandStill(void) {
 	if (!this->started) {
 		return false;
 	}
@@ -867,7 +867,7 @@ boolean TMC26XStepper::isStandStill(void) {
 }
 
 //is chopper inactive since 2^20 clock cycles - defaults to ~0,08s
-boolean TMC26XStepper::isStallGuardReached(void) {
+boolean TMC26XGenerator::isStallGuardReached(void) {
 	if (!this->started) {
 		return false;
 	}
@@ -876,15 +876,15 @@ boolean TMC26XStepper::isStallGuardReached(void) {
 
 //reads the stall guard setting from last status
 //returns -1 if stallguard inforamtion is not present
-int TMC26XStepper::getReadoutValue(void) {
+int TMC26XGenerator::getReadoutValue(void) {
 	return (int)(driver_status_result >> 10);
 }
 
-int TMC26XStepper::getResistor() {
+int TMC26XGenerator::getResistor() {
     return this->resistor;
 }
 
-boolean TMC26XStepper::isCurrentScalingHalfed() {
+boolean TMC26XGenerator::isCurrentScalingHalfed() {
     if (this->driver_configuration_register_value & VSENSE) {
         return true;
     } else {
@@ -894,12 +894,12 @@ boolean TMC26XStepper::isCurrentScalingHalfed() {
 /*
  version() returns the version of the library:
  */
-int TMC26XStepper::version(void)
+int TMC26XGenerator::version(void)
 {
 	return 1;
 }
 
-void TMC26XStepper::debugLastStatus() {
+void TMC26XGenerator::debugLastStatus() {
 #ifdef DEBUG    
 if (this->started) {
 		if (this->getOverTemperature()&TMC26X_OVERTEMPERATURE_PREWARING) {
@@ -949,7 +949,7 @@ if (this->started) {
  * send register settings to the stepper driver via SPI
  * returns the current status
  */
-inline void TMC26XStepper::send262(unsigned long datagram) {
+inline void TMC26XGenerator::send262(unsigned long datagram) {
 	unsigned long i_datagram;
     
     //preserver the previous spi mode

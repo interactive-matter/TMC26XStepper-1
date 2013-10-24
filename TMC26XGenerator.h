@@ -1,5 +1,5 @@
 /*
- TMC26XStepper.cpp - - TMC26X Stepper library for Wiring/Arduino
+ TMC26XGenerator.cpp - - TMC26X Stepper library for Wiring/Arduino
  
  based on the stepper library by Tom Igoe, et. al.
 
@@ -27,17 +27,17 @@
 
 
 // ensure this library description is only included once
-#ifndef TMC26XStepper_h
-#define TMC26XStepper_h
+#ifndef TMC26XGenerator_h
+#define TMC26XGenerator_h
 
-//! return value for TMC26XStepper.getOverTemperature() if there is a overtemperature situation in the TMC chip
+//! return value for TMC26XGenerator.getOverTemperature() if there is a overtemperature situation in the TMC chip
 /*!
  * This warning indicates that the TCM chip is too warm. 
  * It is still working but some parameters may be inferior. 
  * You should do something against it.
  */
 #define TMC26X_OVERTEMPERATURE_PREWARING 1
-//! return value for TMC26XStepper.getOverTemperature() if there is a overtemperature shutdown in the TMC chip
+//! return value for TMC26XGenerator.getOverTemperature() if there is a overtemperature shutdown in the TMC chip
 /*!
  * This warning indicates that the TCM chip is too warm to operate and has shut down to prevent damage. 
  * It will stop working until it cools down again.
@@ -75,14 +75,14 @@
 #define COOL_STEP_QUARTDER_CS_LIMIT 1
 
 /*!
- * \class TMC26XStepper
+ * \class TMC26XGenerator
  * \brief Class representing a TMC26X stepper driver
  * 
  * In order to use one fo those drivers in your Arduino code you have to create an object of that class:
  * \code
- * TMC26XStepper stepper = TMC26XStepper(200,1,2,3,500);
+ * TMC26XGenerator stepper = TMC26XGenerator(200,1,2,3,500);
  * \endcode
- * see TMC26XStepper(int number_of_steps, int cs_pin, int dir_pin, int step_pin, unsigned int rms_current)
+ * see TMC26XGenerator(int number_of_steps, int cs_pin, int dir_pin, int step_pin, unsigned int rms_current)
  *
  * Keep in mind that you need to start the driver with start() in order to get the TMC26X configured.
  * 
@@ -98,7 +98,7 @@
  *
  * You can check with isMoving() if the mototr is still moving or stop it  apruptely with stop().
  */
-class TMC26XStepper {
+class TMC26XGenerator {
   public:
     /*!
      * \brief creates a new represenatation of a stepper motor connected to a TMC26X stepper driver
@@ -112,7 +112,7 @@ class TMC26XStepper {
      * \param rms_current the maximum current to privide to the motor in mA (!). A value of 200 would send up to 200mA to the motor
      * \param resistor the current sense resistor in milli Ohm, defaults to ,15 Ohm ( or 150 milli Ohm) as in the TMC260 Arduino Shield
      *
-     * Keep in mind that you must also call TMC26XStepper.start() in order to configure the stepper driver for use.
+     * Keep in mind that you must also call TMC26XGenerator.start() in order to configure the stepper driver for use.
      *
      * By default the Constant Off Time chopper is used, see TCM262Stepper.setConstantOffTimeChopper() for details. 
      * This should work on most motors (YMMV). You may want to configure and use the Spread Cycle Chopper, see  setSpreadCycleChopper().
@@ -121,7 +121,7 @@ class TMC26XStepper {
      * You can select a different stepping with setMicrosteps() to aa different value.
      * \sa start(), setMicrosteps()
      */
-	TMC26XStepper(int number_of_steps, int cs_pin, int dir_pin, int step_pin, unsigned int current, unsigned int resistor=150);
+	TMC26XGenerator(int number_of_steps, int cs_pin, int dir_pin, int step_pin, unsigned int current, unsigned int resistor=150);
 	
     /*!
      * \brief configures and starts the TMC26X stepper driver. Before you called this function the stepper driver is in nonfunctional mode.
