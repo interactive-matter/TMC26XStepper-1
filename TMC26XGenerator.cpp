@@ -108,24 +108,15 @@
  * dir_pin - the pin where the direction pin is connected
  * step_pin - the pin where the step pin is connected
  */
-TMC26XGenerator::TMC26XGenerator(int number_of_steps, int cs_pin, int dir_pin, int step_pin, unsigned int current, unsigned int resistor)
+TMC26XGenerator::TMC26XGenerator(int number_of_steps, unsigned int current, unsigned int resistor)
 {
 	//we are not started yet
 	started=false;
     //by default cool step is not enabled
     cool_step_enabled=false;
 	
-	//save the pins for later use
-	this->cs_pin=cs_pin;
-	this->dir_pin=dir_pin;
-	this->step_pin = step_pin;
-    
     //store the current sense resistor value for later use
     this->resistor = resistor;
-	
-	//initizalize our status values
-	this->steps_left = 0;
-	this->direction = 0;
 	
 	//initialize register values
 	driver_control_register_value=DRIVER_CONTROL_REGISTER | INITIAL_MICROSTEPPING;
@@ -158,36 +149,9 @@ void TMC26XGenerator::start() {
 
 #ifdef DEBUG	
 	Serial.println("TMC26X stepper library");
-	Serial.print("CS pin: ");
-	Serial.println(cs_pin);
-	Serial.print("DIR pin: ");
-	Serial.println(dir_pin);
-	Serial.print("STEP pin: ");
-	Serial.println(step_pin);
 	Serial.print("current scaling: ");
 	Serial.println(current_scaling,DEC);
 #endif
-	//set the pins as output & its initial value
-	pinMode(step_pin, OUTPUT);     
-	pinMode(dir_pin, OUTPUT);     
-	pinMode(cs_pin, OUTPUT);     
-	digitalWrite(step_pin, LOW);     
-	digitalWrite(dir_pin, LOW);     
-	digitalWrite(cs_pin, HIGH);   
-	
-	//configure the SPI interface
-    SPI.setBitOrder(MSBFIRST);
-	SPI.setClockDivider(SPI_CLOCK_DIV8);
-	//todo this does not work reliably - find a way to foolprof set it (e.g. while communicating
-	//SPI.setDataMode(SPI_MODE3);
-	SPI.begin();
-		
-	//set the initial values
-	send262(driver_control_register_value); 
-	send262(chopper_config_register);
-	send262(cool_step_register_value);
-	send262(stall_guard2_current_register_value);
-	send262(driver_configuration_register_value);
 	
 	//save that we are in running mode
 	started=true;
@@ -200,94 +164,6 @@ void TMC26XGenerator::un_start() {
     started=false;
 }
 
-
-/*
-  Sets the speed in revs per minute
-
-*/
-void TMC26XGenerator::setSpeed(unsigned int whatSpeed)
-{
-  this->speed = whatSpeed;
-  this->step_delay = (60UL * 1000UL * 1000UL) / ((unsigned long)this->number_of_steps * (unsigned long)whatSpeed * (unsigned long)this->microsteps);
-#ifdef DEBUG
-    Serial.print("Step delay in micros: ");
-    Serial.println(this->step_delay);
-#endif
-    //update the next step time
-    this->next_step_time = this->last_step_time+this->step_delay; 
-
-}
-
-unsigned int TMC26XGenerator::getSpeed(void) {
-    return this->speed;
-}
-
-/*
-  Moves the motor steps_to_move steps.  If the number is negative, 
-   the motor moves in the reverse direction.
- */
-char TMC26XGenerator::step(int steps_to_move)
-{  
-	if (this->steps_left==0) {
-  		this->steps_left = abs(steps_to_move);  // how many steps to take
-  
- 		// determine direction based on whether steps_to_mode is + or -:
-  		if (steps_to_move > 0) {
-  			this->direction = 1;
-  		} else if (steps_to_move < 0) {
-  			this->direction = 0;
-  		}
-  		return 0;
-    } else {
-    	return -1;
-    }
-}
-
-char TMC26XGenerator::move(void) {
-  // decrement the number of steps, moving one step each time:
-  if(this->steps_left>0) {
-      unsigned long time = micros();  
-	  // move only if the appropriate delay has passed:
- 	 if (time >= this->next_step_time) {
-   	 	// increment or decrement the step number,
-   	 	// depending on direction:
-   	 	if (this->direction == 1) {
-			digitalWrite(step_pin, HIGH);
-    	} else { 
-		  digitalWrite(dir_pin, HIGH);
-		  digitalWrite(step_pin, HIGH);
-	    }
-        // get the timeStamp of when you stepped:
-        this->last_step_time = time;
-        this->next_step_time = time+this->step_delay; 
-      	// decrement the steps left:
-      	steps_left--;
-	  	//disable the step & dir pins
-	  	digitalWrite(step_pin, LOW);
-	  	digitalWrite(dir_pin, LOW);
-    	}
-        return -1;
-  	}
-    return 0;
-}
-
-char TMC26XGenerator::isMoving(void) {
-	return (this->steps_left>0);
-}
-
-unsigned int TMC26XGenerator::getStepsLeft(void) {
-	return this->steps_left;
-}
-
-char TMC26XGenerator::stop(void) {
-	//note to self if the motor is currently moving
-	char state = isMoving();
-	//stop the motor
-	this->steps_left = 0;
-	this->direction = 0;
-	//return if it was moving
-	return state;
-}
 
 void TMC26XGenerator::setCurrent(unsigned int current) {
     unsigned char current_scaling = 0;
@@ -891,13 +767,6 @@ boolean TMC26XGenerator::isCurrentScalingHalfed() {
         return false;
     }
 }
-/*
- version() returns the version of the library:
- */
-int TMC26XGenerator::version(void)
-{
-	return 1;
-}
 
 void TMC26XGenerator::debugLastStatus() {
 #ifdef DEBUG    
@@ -943,57 +812,4 @@ if (this->started) {
 		}
 	}
 #endif
-}
-
-/*
- * send register settings to the stepper driver via SPI
- * returns the current status
- */
-inline void TMC26XGenerator::send262(unsigned long datagram) {
-	unsigned long i_datagram;
-    
-    //preserver the previous spi mode
-    unsigned char oldMode =  SPCR & SPI_MODE_MASK;
-	
-    //if the mode is not correct set it to mode 3
-    if (oldMode != SPI_MODE3) {
-        SPI.setDataMode(SPI_MODE3);
-    }
-	
-	//select the TMC driver
-	digitalWrite(cs_pin,LOW);
-
-	//ensure that only valid bist are set (0-19)
-	//datagram &=REGISTER_BIT_PATTERN;
-	
-#ifdef DEBUG
-	Serial.print("Sending ");
-	Serial.println(datagram,HEX);
-#endif
-
-	//write/read the values
-	i_datagram = SPI.transfer((datagram >> 16) & 0xff);
-	i_datagram <<= 8;
-	i_datagram |= SPI.transfer((datagram >>  8) & 0xff);
-	i_datagram <<= 8;
-	i_datagram |= SPI.transfer((datagram) & 0xff);
-	i_datagram >>= 4;
-	
-#ifdef DEBUG
-	Serial.print("Received ");
-	Serial.println(i_datagram,HEX);
-	debugLastStatus();
-#endif
-	//deselect the TMC chip
-	digitalWrite(cs_pin,HIGH); 
-    
-    //restore the previous SPI mode if neccessary
-    //if the mode is not correct set it to mode 3
-    if (oldMode != SPI_MODE3) {
-        SPI.setDataMode(oldMode);
-    }
-
-	
-	//store the datagram as status result
-	driver_status_result = i_datagram;
 }

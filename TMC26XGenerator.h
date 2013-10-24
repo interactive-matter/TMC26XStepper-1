@@ -121,7 +121,7 @@ class TMC26XGenerator {
      * You can select a different stepping with setMicrosteps() to aa different value.
      * \sa start(), setMicrosteps()
      */
-	TMC26XGenerator(int number_of_steps, int cs_pin, int dir_pin, int step_pin, unsigned int current, unsigned int resistor=150);
+	TMC26XGenerator(int number_of_steps, unsigned int current, unsigned int resistor=150);
 	
     /*!
      * \brief configures and starts the TMC26X stepper driver. Before you called this function the stepper driver is in nonfunctional mode.
@@ -146,18 +146,6 @@ class TMC26XGenerator {
 
 
     /*!
-     * \brief Sets the rotation speed in revolutions per minute.
-     * \param whatSpeed the desired speed in rotations per minute.
-     */
-    void setSpeed(unsigned int whatSpeed);
-    
-    /*!
-     * \brief reads out the currently selected speed in revolutions per minute.
-     * \sa setSpeed()
-     */
-    unsigned int getSpeed(void);
-
-    /*!
      * \brief Set the number of microsteps in 2^i values (rounded) up to 256
      *
      * This method set's the number of microsteps per step in 2^i interval.
@@ -177,66 +165,6 @@ class TMC26XGenerator {
      */
 	int getMicrosteps(void);
 
-    /*!
-     * \brief Initiate a movement for the given number of steps. Positive numbers move in one, negative numbers in the other direction.
-     *
-     * \param number_of_steps The number of steps to move the motor.
-     * \return 0 if the motor was not moving and moves now. -1 if the motor is moving and the new steps could not be set.
-     *
-     * If the previous movement is not finished yet the function will return -1 and not change the steps to move the motor.
-	 * If the motor does not move it return 0
-     *
-     * The direction of the movement is indicated by the sign of the steps parameter. It is not determinable if positive values are right 
-     * or left This depends on the internal construction of the motor and how you connected it to the stepper driver.
-     *
-     * You can always verify with isMoving() or even use stop() to stop the motor before giving it new step directions.
-     * \sa isMoving(), getStepsLeft(), stop()
-     */
-    char step(int number_of_steps);
-    
-    /*!
-     * \brief Central movement method, must be called as often as possible in the lopp function and is very fast.
-     *
-     * This routine checks if the motor still has to move, if the waiting delay has passed to send a new step command to the motor 
-     * and manages the number of steps yet to move to fulfill the current move command.
-     *
-     * This function is implemented to be as fast as possible to call it as often as possible in your loop routine.
-     * The more regurlarly you call this function the better. In both senses of 'regularly': Calling it as often as
-     * possible is not a bad idea and if you even manage that the intervals you call this function are not too irregular helps too.
-     *
-     * You can call this routine even if you know that the motor is not miving. It introduces just a very small penalty in your code.
-     * You must not call isMoving() to determine if you need to call this function, since taht is done internally already and only 
-     * slows down you code.
-     * 
-     * How often you call this function directly influences your top miving speed for the motor. It may be a good idea to call this
-     * from an timer overflow interrupt to ensure proper calling.
-     * \sa step()
-     */
-    char move(void);
-
-    /*!
-     * \brief checks if the motor still has to move to fulfill the last movement command.
-     * \return 0 if the motor stops, -1 if the motor is moving.
-     *
-     * This method can be used to determine if the motor is ready for new movements.
-     *\sa step(), move()
-     */
-    char isMoving(void);
-    
-    /*!
-     * \brief Get the number of steps left in the current movement.
-     * \return The number of steps left in the movement. This number is always positive.
-     */
-    unsigned int getStepsLeft(void);
-    
-    /*!
-     * \brief Stops the motor regardless if it moves or not.
-     * \return -1 if the motor was moving and is really stoped or 0 if it was not moving at all.
-     *
-     * This method directly and apruptely stops the motor and may be used as an emergency stop.
-     */
-    char stop(void);
-    
     /*!
      * \brief Sets and configure the classical Constant Off Timer Chopper
      * \param constant_off_time The off time setting controls the minimum chopper frequency. For most applications an off time within the range of 5μs to 20μs will fit. Setting this parameter to zero completely disables all driver transistors and the motor can free-wheel. 0: chopper off, 1:15: off time setting (1 will work with minimum blank time of 24 clocks)
@@ -565,17 +493,9 @@ class TMC26XGenerator {
     int version(void);
 
   private:    
-  	unsigned int steps_left;		//the steps the motor has to do to complete the movement
-    int direction;        // Direction of rotation
-    unsigned long step_delay;    // delay between steps, in ms, based on speed
-    int number_of_steps;      // total number of steps this motor can take
-    unsigned int speed; // we need to store the current speed in order to change the speed after changing microstepping
     unsigned int resistor; //current sense resitor value in milliohm
         
-    unsigned long last_step_time;      // time stamp in ms of when the last step was taken
-    unsigned long next_step_time;      // time stamp in ms of when the last step was taken
-	
-	//driver control register copies to easily set & modify the registers
+  	//driver control register copies to easily set & modify the registers
 	unsigned long driver_control_register_value;
 	unsigned long chopper_config_register;
 	unsigned long cool_step_register_value;
@@ -587,20 +507,12 @@ class TMC26XGenerator {
 	//helper routione to get the top 10 bit of the readout
 	inline int getReadoutValue();
 	
-	//the pins for the stepper driver
-	unsigned char cs_pin;
-	unsigned char step_pin;
-	unsigned char dir_pin;
-	
 	//status values 
 	boolean started; //if the stepper has been started yet
 	int microsteps; //the current number of micro steps
     char constant_off_time; //we need to remember this value in order to enable and disable the motor
     unsigned char cool_step_lower_threshold; // we need to remember the threshold to enable and disable the CoolStep feature
     boolean cool_step_enabled; //we need to remember this to configure the coolstep if it si enabled
-	
-	//SPI sender
-	inline void send262(unsigned long datagram);
 };
 
 #endif
