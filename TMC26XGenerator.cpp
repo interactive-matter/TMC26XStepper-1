@@ -795,6 +795,6 @@ unsigned long TMC26XGenerator::getDriverConfigurationRegisterValue(){
 	return this->driver_configuration_register_value;
 }
 
-void setDriverStatusResult(unsigned long driver_status_result) {
+void TMC26XGenerator::setDriverStatusResult(unsigned long driver_status_result) {
 	this->driver_status_result = driver_status_result;
 }
