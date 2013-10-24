@@ -574,6 +574,7 @@ boolean TMC26XGenerator::isEnabled() {
  * be read by the various status routines.
  *
  */
+ /*
 void TMC26XGenerator::readStatus(char read_value) {
     unsigned long old_driver_configuration_register_value = driver_configuration_register_value;
 	//reset the readout configuration
@@ -593,10 +594,11 @@ void TMC26XGenerator::readStatus(char read_value) {
     //write the configuration to get the last status    
 	send262(driver_configuration_register_value);
 }
+*/
 
 int TMC26XGenerator::getMotorPosition(void) {
 	//we read it out even if we are not started yet - perhaps it is useful information for somebody
-	readStatus(TMC26X_READOUT_POSITION);
+	//readStatus(TMC26X_READOUT_POSITION);
     return getReadoutValue();
 }
 
@@ -609,7 +611,7 @@ int TMC26XGenerator::getCurrentStallGuardReading(void) {
 	}
 	//not time optimal, but solution optiomal:
 	//first read out the stall guard value
-	readStatus(TMC26X_READOUT_STALLGUARD);
+	//readStatus(TMC26X_READOUT_STALLGUARD);
 	return getReadoutValue();
 }
 
@@ -620,7 +622,7 @@ unsigned char TMC26XGenerator::getCurrentCSReading(void) {
 	}
 	//not time optimal, but solution optiomal:
 	//first read out the stall guard value
-	readStatus(TMC26X_READOUT_CURRENT);
+	//readStatus(TMC26X_READOUT_CURRENT);
 	return (getReadoutValue() & 0x1f);
 }
 
