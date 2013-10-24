@@ -136,8 +136,6 @@ TMC26XGenerator::TMC26XGenerator(int number_of_steps, unsigned int current, unsi
 	setConstantOffTimeChopper(7, 54, 13,12,1);
     //set a nice microstepping value
     setMicrosteps(DEFAULT_MICROSTEPPING_VALUE);
-    //save the number of steps
-    this->number_of_steps =   number_of_steps;
 }
 
 
@@ -202,11 +200,6 @@ void TMC26XGenerator::setCurrent(unsigned int current) {
 	stall_guard2_current_register_value &= ~(CURRENT_SCALING_PATTERN);
 	//set the new current scaling
 	stall_guard2_current_register_value |= current_scaling;
-	//if started we directly send it to the motor
-	if (started) {
-        send262(driver_configuration_register_value);
-		send262(stall_guard2_current_register_value);
-	}
 }
 
 unsigned int TMC26XGenerator::getCurrent(void) {
@@ -235,10 +228,6 @@ void TMC26XGenerator::setStallGuardThreshold(char stall_guard_threshold, char st
 	}
 	//Set the new stall guard threshold
 	stall_guard2_current_register_value |= (((unsigned long)stall_guard_threshold << 8) & STALL_GUARD_CONFIG_PATTERN);
-	//if started we directly send it to the motor
-	if (started) {
-		send262(stall_guard2_current_register_value);
-	}
 }
 
 char TMC26XGenerator::getStallGuardThreshold(void) {
@@ -307,13 +296,6 @@ void TMC26XGenerator::setMicrosteps(int number_of_steps) {
 	this->driver_control_register_value &=0xFFFF0ul;
 	//set the new value
 	this->driver_control_register_value |=setting_pattern;
-	
-	//if started we directly send it to the motor
-	if (started) {
-		send262(driver_control_register_value);
-	}
-    //recalculate the stepping delay by simply setting the speed again
-    this->setSpeed(this->speed);
 }
 
 /*
@@ -399,10 +381,6 @@ void TMC26XGenerator::setConstantOffTimeChopper(char constant_off_time, char bla
 	if (!use_current_comparator) {
 		chopper_config_register |= (1<<12);
 	}
-	//if started we directly send it to the motor
-	if (started) {
-		send262(driver_control_register_value);
-	}	
 }
 
 /*
@@ -479,10 +457,6 @@ void TMC26XGenerator::setSpreadCycleChopper(char constant_off_time, char blank_t
 	chopper_config_register |= ((unsigned long)hysteresis_end) << HYSTERESIS_LOW_SHIFT;
 	//set the hystereis decrement
 	chopper_config_register |= ((unsigned long)blank_value) << BLANK_TIMING_SHIFT;
-	//if started we directly send it to the motor
-	if (started) {
-		send262(driver_control_register_value);
-	}	
 }
 
 /*
@@ -503,10 +477,6 @@ void TMC26XGenerator::setRandomOffTime(char value) {
 	} else {
 		chopper_config_register &= ~(RANDOM_TOFF_TIME);
 	}
-	//if started we directly send it to the motor
-	if (started) {
-		send262(driver_control_register_value);
-	}	
 }	
 
 void TMC26XGenerator::setCoolStepConfiguration(unsigned int lower_SG_threshold, unsigned int SG_hysteresis, unsigned char current_decrement_step_size,
@@ -544,10 +514,7 @@ void TMC26XGenerator::setCoolStepConfiguration(unsigned int lower_SG_threshold, 
         //and of course we have to include the signature of the register
         | COOL_STEP_REGISTER;
     //Serial.println(cool_step_register_value,HEX);
-    if (started) {
-        send262(cool_step_register_value);
-    }
-}
+ }
 
 void TMC26XGenerator::setCoolStepEnabled(boolean enabled) {
     //simply delete the lower limit to disable the cool step
@@ -558,11 +525,7 @@ void TMC26XGenerator::setCoolStepEnabled(boolean enabled) {
     }
     //and save the enabled status
     this->cool_step_enabled = enabled;
-    //save the register value
-    if (started) {
-        send262(cool_step_register_value);
-    }
-}
+  }
 
 boolean TMC26XGenerator::isCoolStepEnabled(void) {
     return this->cool_step_enabled;
@@ -596,10 +559,6 @@ void TMC26XGenerator::setEnabled(boolean enabled) {
         //and set the t_off time
         chopper_config_register |= this->constant_off_time;
     }
-    //if not enabled we don't have to do anything since we already delete t_off from the register
-	if (started) {
-		send262(chopper_config_register);
-	}	
 }
 
 boolean TMC26XGenerator::isEnabled() {
