@@ -110,8 +110,6 @@
  */
 TMC26XGenerator::TMC26XGenerator(unsigned int current, unsigned int resistor)
 {
-	//we are not started yet
-	started=false;
     //by default cool step is not enabled
     cool_step_enabled=false;
 	
@@ -137,31 +135,6 @@ TMC26XGenerator::TMC26XGenerator(unsigned int current, unsigned int resistor)
     //set a nice microstepping value
     setMicrosteps(DEFAULT_MICROSTEPPING_VALUE);
 }
-
-
-/*
- * start & configure the stepper driver
- * just must be called.
- */
-void TMC26XGenerator::start() {
-
-#ifdef DEBUG	
-	Serial.println("TMC26X stepper library");
-	Serial.print("current scaling: ");
-	Serial.println(current_scaling,DEC);
-#endif
-	
-	//save that we are in running mode
-	started=true;
-}
-
-/*
- Mark the driver as unstarted to be able to start it again
- */
-void TMC26XGenerator::un_start() {
-    started=false;
-}
-
 
 void TMC26XGenerator::setCurrent(unsigned int current) {
     unsigned char current_scaling = 0;
@@ -605,10 +578,6 @@ int TMC26XGenerator::getMotorPosition(void) {
 //reads the stall guard setting from last status
 //returns -1 if stallguard information is not present
 int TMC26XGenerator::getCurrentStallGuardReading(void) {
-	//if we don't yet started there cannot be a stall guard value
-	if (!started) {
-		return -1;
-	}
 	//not time optimal, but solution optiomal:
 	//first read out the stall guard value
 	//readStatus(TMC26X_READOUT_STALLGUARD);
@@ -616,10 +585,6 @@ int TMC26XGenerator::getCurrentStallGuardReading(void) {
 }
 
 unsigned char TMC26XGenerator::getCurrentCSReading(void) {
-	//if we don't yet started there cannot be a stall guard value
-	if (!started) {
-		return 0;
-	}
 	//not time optimal, but solution optiomal:
 	//first read out the stall guard value
 	//readStatus(TMC26X_READOUT_CURRENT);
@@ -638,9 +603,6 @@ unsigned int TMC26XGenerator::getCurrentCurrent(void) {
  return true if the stallguard threshold has been reached
 */
 boolean TMC26XGenerator::isStallGuardOverThreshold(void) {
-	if (!this->started) {
-		return false;
-	}
 	return (driver_status_result & STATUS_STALL_GUARD_STATUS);
 }
 
@@ -651,9 +613,6 @@ boolean TMC26XGenerator::isStallGuardOverThreshold(void) {
  Any of those levels are not too good.
 */
 char TMC26XGenerator::getOverTemperature(void) {
-	if (!this->started) {
-		return 0;
-	}
 	if (driver_status_result & STATUS_OVER_TEMPERATURE_SHUTDOWN) {
 		return TMC26X_OVERTEMPERATURE_SHUTDOWN;
 	}
@@ -665,49 +624,31 @@ char TMC26XGenerator::getOverTemperature(void) {
 
 //is motor channel A shorted to ground
 boolean TMC26XGenerator::isShortToGroundA(void) {
-	if (!this->started) {
-		return false;
-	}
 	return (driver_status_result & STATUS_SHORT_TO_GROUND_A);
 }
 
 //is motor channel B shorted to ground
 boolean TMC26XGenerator::isShortToGroundB(void) {
-	if (!this->started) {
-		return false;
-	}
 	return (driver_status_result & STATUS_SHORT_TO_GROUND_B);
 }
 
 //is motor channel A connected
 boolean TMC26XGenerator::isOpenLoadA(void) {
-	if (!this->started) {
-		return false;
-	}
 	return (driver_status_result & STATUS_OPEN_LOAD_A);
 }
 
 //is motor channel B connected
 boolean TMC26XGenerator::isOpenLoadB(void) {
-	if (!this->started) {
-		return false;
-	}
 	return (driver_status_result & STATUS_OPEN_LOAD_B);
 }
 
 //is chopper inactive since 2^20 clock cycles - defaults to ~0,08s
 boolean TMC26XGenerator::isStandStill(void) {
-	if (!this->started) {
-		return false;
-	}
 	return (driver_status_result & STATUS_STAND_STILL);
 }
 
 //is chopper inactive since 2^20 clock cycles - defaults to ~0,08s
 boolean TMC26XGenerator::isStallGuardReached(void) {
-	if (!this->started) {
-		return false;
-	}
 	return (driver_status_result & STATUS_STALL_GUARD_STATUS);
 }
 
@@ -731,7 +672,6 @@ boolean TMC26XGenerator::isCurrentScalingHalfed() {
 
 void TMC26XGenerator::debugLastStatus() {
 #ifdef DEBUG    
-if (this->started) {
 		if (this->getOverTemperature()&TMC26X_OVERTEMPERATURE_PREWARING) {
 			Serial.println("WARNING: Overtemperature Prewarning!");
 		} else if (this->getOverTemperature()&TMC26X_OVERTEMPERATURE_SHUTDOWN) {
@@ -771,7 +711,6 @@ if (this->started) {
 			Serial.print("Current level");
 			Serial.println(current);
 		}
-	}
 #endif
 }
 

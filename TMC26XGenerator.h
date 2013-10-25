@@ -124,28 +124,6 @@ class TMC26XGenerator {
 	TMC26XGenerator(unsigned int current, unsigned int resistor=150);
 	
     /*!
-     * \brief configures and starts the TMC26X stepper driver. Before you called this function the stepper driver is in nonfunctional mode.
-     *
-     * This routine configures the TMC26X stepper driver for the given values via SPI. 
-     * Most member functions are non functional if the driver has not been started.
-     * Therefore it is best to call this in your Arduino setup() function.
-     */
-	void start();
-    
-    /*!
-     * \brief resets the stepper in unconfigured mode.
-     *
-     * This routine enables you to call start again. It does not change anything 
-     * in the internal stepper configuration or the desired configuration.
-     * It just marks the stepper as not yet startet. You do not have to reconfigure
-     * the stepper to start it again, but it is not reset to any factory settings
-     * this has to be configured back by yourself.
-     * (Hint: Normally you do not need this function)
-     */
-	void un_start();
-
-
-    /*!
      * \brief Set the number of microsteps in 2^i values (rounded) up to 256
      *
      * This method set's the number of microsteps per step in 2^i interval.
@@ -511,7 +489,6 @@ class TMC26XGenerator {
 	inline int getReadoutValue();
 	
 	//status values 
-	boolean started; //if the stepper has been started yet
 	int microsteps; //the current number of micro steps
     char constant_off_time; //we need to remember this value in order to enable and disable the motor
     unsigned char cool_step_lower_threshold; // we need to remember the threshold to enable and disable the CoolStep feature
