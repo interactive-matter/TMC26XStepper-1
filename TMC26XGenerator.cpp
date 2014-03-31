@@ -547,10 +547,8 @@ boolean TMC26XGenerator::isEnabled() {
  * be read by the various status routines.
  *
  */
- /*
-void TMC26XGenerator::readStatus(char read_value) {
-    unsigned long old_driver_configuration_register_value = driver_configuration_register_value;
-	//reset the readout configuration
+unsigned long TMC26XGenerator::setReadStatus(char read_value) {
+    //reset the readout configuration
 	driver_configuration_register_value &= ~(READ_SELECTION_PATTERN);
 	//this now equals TMC26X_READOUT_POSITION - so we just have to check the other two options
 	if (read_value == TMC26X_READOUT_STALLGUARD) {
@@ -559,15 +557,7 @@ void TMC26XGenerator::readStatus(char read_value) {
 		driver_configuration_register_value |= READ_STALL_GUARD_AND_COOL_STEP;
 	}
 	//all other cases are ignored to prevent funny values
-    //check if the readout is configured for the value we are interested in
-    if (driver_configuration_register_value!=old_driver_configuration_register_value) {
-            //because then we need to write the value twice - one time for configuring, second time to get the value, see below
-            send262(driver_configuration_register_value);
-        }
-    //write the configuration to get the last status    
-	send262(driver_configuration_register_value);
 }
-*/
 
 int TMC26XGenerator::getMotorPosition(void) {
 	//we read it out even if we are not started yet - perhaps it is useful information for somebody

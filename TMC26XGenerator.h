@@ -451,7 +451,7 @@ class TMC26XGenerator {
      * \param read_value selects which value to read out (0..3). You can use the defines TMC26X_READOUT_POSITION, TMC_262_READOUT_STALLGUARD, or TMC_262_READOUT_CURRENT
      * \sa TMC26X_READOUT_POSITION, TMC_262_READOUT_STALLGUARD, TMC_262_READOUT_CURRENT
      */
-	//void readStatus(char read_value);
+	unsigned long setReadStatus(char read_value);
     
     /*!
      * \brief Returns the current sense resistor value in milliohm.
