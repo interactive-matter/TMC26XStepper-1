@@ -137,25 +137,13 @@ TMC26XGenerator::TMC26XGenerator(unsigned int current, unsigned int resistor)
 }
 
 void TMC26XGenerator::setCurrent(unsigned int current) {
-    unsigned char current_scaling = 0;
-	//calculate the current scaling from the max current setting (in mA)
-	double mASetting = (double)current;
-    double resistor_value = (double) this->resistor;
-	// remove vesense flag
-	this->driver_configuration_register_value &= ~(VSENSE);	
-	//this is derrived from I=(cs+1)/32*(Vsense/Rsense)
-    //leading to cs = CS = 32*R*I/V (with V = 0,31V oder 0,165V  and I = 1000*current)
-	//with Rsense=0,15
-	//for vsense = 0,310V (VSENSE not set)
-	//or vsense = 0,165V (VSENSE set)
-	current_scaling = (byte)((resistor_value*mASetting*32.0/(0.31*1000.0*1000.0))-0.5); //theoretically - 1.0 for better rounding it is 0.5
-	
+	unsigned char current_scaling = this->getCurrentScaling(current, true);
 	//check if the current scalingis too low
 	if (current_scaling<16) {
         //set the csense bit to get a use half the sense voltage (to support lower motor currents)
 		this->driver_configuration_register_value |= VSENSE;
         //and recalculate the current setting
-        current_scaling = (byte)((resistor_value*mASetting*32.0/(0.165*1000.0*1000.0))-0.5); //theoretically - 1.0 for better rounding it is 0.5
+        current_scaling = this->getCurrentScaling(current, false);
 #ifdef DEBUG
 		Serial.print("CS (Vsense=1): ");
 		Serial.println(current_scaling);
@@ -164,15 +152,34 @@ void TMC26XGenerator::setCurrent(unsigned int current) {
         Serial.println(current_scaling);
 #endif
     }
-
-	//do some sanity checks
-	if (current_scaling>31) {
-		current_scaling=31;
-	}
 	//delete the old value
 	stall_guard2_current_register_value &= ~(CURRENT_SCALING_PATTERN);
 	//set the new current scaling
 	stall_guard2_current_register_value |= current_scaling;
+}
+
+unsigned char TMC26XGenerator::getCurrentScaling(unsigned int current, boolean vsense_high) {
+    unsigned char current_scaling = 0;
+	//calculate the current scaling from the max current setting (in mA)
+	double mASetting = (double)current;
+    double resistor_value = (double) this->resistor;
+	// remove vesense flag
+	this->driver_configuration_register_value &= ~(VSENSE);
+	//this is derrived from I=(cs+1)/32*(Vsense/Rsense)
+    //leading to cs = CS = 32*R*I/V (with V = 0,31V oder 0,165V  and I = 1000*current)
+	//with Rsense=0,15
+	//for vsense = 0,310V (VSENSE not set)
+	//or vsense = 0,165V (VSENSE set)
+    if (vsense_high) {
+        current_scaling = (byte)((resistor_value*mASetting*32.0/(0.31*1000.0*1000.0))-0.5); //theoretically - 1.0 for better rounding it is 0.5
+    } else {
+        current_scaling = (byte)((resistor_value*mASetting*32.0/(0.165*1000.0*1000.0))-0.5); //theoretically - 1.0 for better rounding it is 0.5
+    }
+	//do some sanity checks
+	if (current_scaling>31) {
+		current_scaling=31;
+	}
+    return current_scaling;
 }
 
 unsigned int TMC26XGenerator::getCurrent(void) {

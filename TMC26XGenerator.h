@@ -225,6 +225,16 @@ class TMC26XGenerator {
      */
     unsigned int getCurrent(void);
     
+    /*!
+     * \brief calculate the CS setting of the motor driver
+     * This setting should not be below 16 - if so reduce sense resistors.
+     * it will be clipped at 31 - so be aware.
+     * \param vsense_high if true VSENSE should bo 0 and a sense voltage of 0.31V is used. otherwise it should be high and 0.165V is used.
+     *\return the cs current setting bits
+     * \sa setCurrentCurrent()
+     */
+    unsigned char getCurrentScaling(unsigned int current, boolean vsense_high);
+    
 	/*!
      * \brief set the StallGuard threshold in order to get sensible StallGuard readings.
      * \param stall_guard_threshold -64 … 63 the StallGuard threshold
