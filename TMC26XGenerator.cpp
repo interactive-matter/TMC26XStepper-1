@@ -112,6 +112,8 @@ TMC26XGenerator::TMC26XGenerator(unsigned int current, unsigned int resistor)
 {
     //by default cool step is not enabled
     cool_step_enabled=false;
+    this->bridges_enabled=true;
+
 	
     //store the current sense resistor value for later use
     this->resistor = resistor;
@@ -349,7 +351,9 @@ void TMC26XGenerator::setConstantOffTimeChopper(char constant_off_time, char bla
 	//set the blank timing value
 	chopper_config_register |= ((unsigned long)blank_value) << BLANK_TIMING_SHIFT;
 	//setting the constant off time
-	chopper_config_register |= constant_off_time;
+    if (this->bridges_enabled) {
+        chopper_config_register |= constant_off_time;
+    }
 	//set the fast decay time
 	//set msb
 	chopper_config_register |= (((unsigned long)(fast_decay_time_setting & 0x8))<<HYSTERESIS_DECREMENT_SHIFT);
@@ -430,7 +434,9 @@ void TMC26XGenerator::setSpreadCycleChopper(char constant_off_time, char blank_t
 	//set the blank timing value
 	chopper_config_register |= ((unsigned long)blank_value) << BLANK_TIMING_SHIFT;
 	//setting the constant off time
-	chopper_config_register |= constant_off_time;
+    if (this->bridges_enabled) {
+        chopper_config_register |= constant_off_time;
+    }
 	//set the hysteresis_start
 	chopper_config_register |= ((unsigned long)hysteresis_start) << HYSTERESIS_START_VALUE_SHIFT;
 	//set the hysteresis end
@@ -539,14 +545,11 @@ void TMC26XGenerator::setEnabled(boolean enabled) {
         //and set the t_off time
         chopper_config_register |= this->constant_off_time;
     }
+    this->bridges_enabled = enabled;
 }
 
 boolean TMC26XGenerator::isEnabled() {
-    if (chopper_config_register & T_OFF_PATTERN) {
-        return true;
-    } else {
-        return false;
-    }
+    return this->bridges_enabled;
 }
 
 /*

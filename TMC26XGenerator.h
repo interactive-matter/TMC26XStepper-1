@@ -501,8 +501,9 @@ class TMC26XGenerator {
 	//status values 
 	int microsteps; //the current number of micro steps
     char constant_off_time; //we need to remember this value in order to enable and disable the motor
+    boolean bridges_enabled;
     unsigned char cool_step_lower_threshold; // we need to remember the threshold to enable and disable the CoolStep feature
-    boolean cool_step_enabled; //we need to remember this to configure the coolstep if it si enabled
+    boolean cool_step_enabled; //we need to remember this to configure the coolstep if it is enabled
 };
 
 #endif
