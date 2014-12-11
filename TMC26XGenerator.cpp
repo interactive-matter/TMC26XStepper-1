@@ -98,6 +98,8 @@
 //default values
 #define INITIAL_MICROSTEPPING 0x3ul //32th microstepping
 
+#define SQRT_2 (1.414213562373095)
+
 //debuging output
 //#define DEBUG
 
@@ -149,7 +151,10 @@ void TMC26XGenerator::setCurrent(unsigned int current) {
 #ifdef DEBUG
 		Serial.print("CS (Vsense=1): ");
 		Serial.println(current_scaling);
+#endif
 	} else {
+        this->driver_configuration_register_value &= ~(VSENSE);
+#ifdef DEBUG
         Serial.print("CS: ");
         Serial.println(current_scaling);
 #endif
@@ -173,9 +178,9 @@ unsigned char TMC26XGenerator::getCurrentScaling(unsigned int current, boolean v
 	//for vsense = 0,310V (VSENSE not set)
 	//or vsense = 0,165V (VSENSE set)
     if (vsense_high) {
-        current_scaling = (byte)((resistor_value*mASetting*32.0/(0.31*1000.0*1000.0))-0.5); //theoretically - 1.0 for better rounding it is 0.5
+        current_scaling = (byte)((resistor_value*mASetting*32.0*SQRT_2/(0.31*1000.0*1000.0))-0.5); //theoretically - 1.0 for better rounding it is 0.5
     } else {
-        current_scaling = (byte)((resistor_value*mASetting*32.0/(0.165*1000.0*1000.0))-0.5); //theoretically - 1.0 for better rounding it is 0.5
+        current_scaling = (byte)((resistor_value*mASetting*32.0*SQRT_2/(0.165*1000.0*1000.0))-0.5); //theoretically - 1.0 for better rounding it is 0.5
     }
 	//do some sanity checks
 	if (current_scaling>31) {
@@ -190,7 +195,7 @@ unsigned int TMC26XGenerator::getCurrent(void) {
     double result = (double)(stall_guard2_current_register_value & CURRENT_SCALING_PATTERN);
     double resistor_value = (double)this->resistor;
     double voltage = (driver_configuration_register_value & VSENSE)? 0.165:0.31;
-    result = (result+1.0)/32.0*voltage/resistor_value*1000.0*1000.0;
+    result = (result+1.0)/32.0*voltage/resistor_value*1000.0/SQRT_2;
     return (unsigned int)result;
 }
 
