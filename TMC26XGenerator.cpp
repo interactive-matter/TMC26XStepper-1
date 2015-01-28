@@ -195,7 +195,7 @@ unsigned int TMC26XGenerator::getCurrent(void) {
     double result = (double)(stall_guard2_current_register_value & CURRENT_SCALING_PATTERN);
     double resistor_value = (double)this->resistor;
     double voltage = (driver_configuration_register_value & VSENSE)? 0.165:0.31;
-    result = (result+1.0)/32.0*voltage/resistor_value*1000.0/SQRT_2;
+    result = (result+1.0)/32.0*voltage/resistor_value*1000.0*1000.0/SQRT_2;
     return (unsigned int)result;
 }
 
